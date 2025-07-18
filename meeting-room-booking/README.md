@@ -1,67 +1,63 @@
 # Meeting Room Booking System
 
-Una aplicación de consola en Python para gestionar usuarios, salas y reservas de salas de reuniones. Utiliza patrones de diseño Repository y Strategy, y permite validar conflictos de horarios.
+A console-based Python application for managing users, meeting rooms, and room bookings. It uses Repository and Strategy design patterns and includes time conflict validation for bookings.
 
-## 🚀 Requisitos
+## Requirements
 
-- Python 3.10 o superior
+- Python 3.10 or higher
 - Docker
 
-## ⚡ Instalación y ejecución
+## Installation and Execution
 
-### 1. Clonar el repositorio
+### 1. Clone the repository
 
 ```sh
-git clone <URL_DEL_REPOSITORIO>
+git clone <REPOSITORY_URL>
 cd meeting-room-booking
-```
+````
 
-### 2. Ejecutar con Python
+Make sure you have Python 3.10+ installed.
 
-Asegúrate de tener Python 3.10+ instalado.
+From the directory that contains the `src` folder, run:
 
 ```sh
-python -m src/main.py
+python -m src.main
 ```
 
-### 3. Ejecutar pruebas unitarias
+### 3. Run unit tests
 
 ```sh
 python -m unittest discover tests
 ```
 
-## 🐳 Ejecución con Docker
+## Run with Docker
 
-1. Construye la imagen:
+1. Build the image:
 
-   ```sh
-   docker build -t meeting-room-booking .
-   ```
+```sh
+docker build -t meeting-room-booking .
+```
 
-2. Ejecuta el contenedor:
+2. Run the container:
 
-   ```sh
-   docker run -it meeting-room-booking
-   ```
+```sh
+docker run -it meeting-room-booking
+```
 
-Esto iniciará la aplicación en modo interactivo en la terminal del contenedor.
+This will start the application in interactive mode in the container’s terminal.
 
----
+## Project Structure
 
-## 📦 Estructura del proyecto
+* `src/` – Main source code
+* `tests/` – Unit tests
+* `requirements.txt` – Dependencies (empty or only standard modules)
+* `Dockerfile` – Used to build the Docker image
 
-- `src/` - Código fuente principal
-- `tests/` - Pruebas unitarias
-- `requirements.txt` - Dependencias (vacío, solo estándar)
-- `Dockerfile` - Para construir la imagen Docker
+## Features
 
----
-
-## ✨ Características
-
-- Gestión de usuarios y salas
-- Creación de reservas con validación de solapamiento
-- Interfaz de consola sencilla
-- Patrones Repository y Strategy
-- Pruebas unitarias con `unittest`
-- Listo para Docker
+* User and room management
+* Booking creation with time overlap validation
+* Simple console-based interface
+* Repository and Strategy design patterns
+* Unit tests using `unittest`
+* Docker-ready
