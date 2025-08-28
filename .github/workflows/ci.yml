@@ -1,6 +1,5 @@
 name: Python Dependencies CI
 
-# Se ejecuta al hacer push a cualquier rama (puedes limitarlo a release si querés)
 on:
   push:
     branches:
@@ -11,18 +10,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout del repositorio
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Configurar Python
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'   # usa la versión que necesites
+          python-version: '3.x'
 
-      # 3. Instalar dependencias
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r meeting-romm-booking/requirements.txt
+          pip install -r meeting-room-booking/requirements.txt
