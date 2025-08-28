@@ -61,3 +61,5 @@ This will start the application in interactive mode in the container’s termina
 * Repository and Strategy design patterns
 * Unit tests using `unittest`
 * Docker-ready
+
+probrar el ci.yml
