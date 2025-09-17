@@ -9,6 +9,9 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: meeting-room-booking
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
@@ -29,6 +32,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     needs: lint
+    defaults:
+      run:
+        working-directory: meeting-room-booking
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
@@ -46,23 +52,26 @@ jobs:
           pip install pytest pytest-cov
 
       - name: Ejecutar tests con cobertura
-        run: pytest --cov=src --cov-report=xml --cov-report=html --junitxml=tests-report.xml
+        run: pytest tests --cov=src --cov-report=xml --cov-report=html --junitxml=tests-report.xml
 
       - name: Subir reporte de cobertura
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: htmlcov/
+          path: meeting-room-booking/htmlcov/
 
       - name: Subir reporte de tests
         uses: actions/upload-artifact@v4
         with:
           name: test-report
-          path: tests-report.xml
+          path: meeting-room-booking/tests-report.xml
 
   build:
     runs-on: ubuntu-latest
     needs: test
+    defaults:
+      run:
+        working-directory: meeting-room-booking
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
@@ -79,4 +88,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dist
-          path: dist/
+          path: meeting-room-booking/dist/
