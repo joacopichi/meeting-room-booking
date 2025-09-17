@@ -2,9 +2,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ main, develop, relese ]
+    branches: [ main, develop, release ]
   pull_request:
-    branches: [ main, develop, relese ]
+    branches: [ main, develop, release ]
 
 jobs:
   lint:
@@ -13,17 +13,18 @@ jobs:
       - name: Checkout código
         uses: actions/checkout@v4
 
-      - name: Configurar Node.js
-        uses: actions/setup-node@v4
+      - name: Configurar Python
+        uses: actions/setup-python@v5
         with:
-          node-version: 20
-          cache: "npm"
+          python-version: '3.11'
 
       - name: Instalar dependencias
-        run: npm ci
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
 
       - name: Ejecutar Linter
-        run: npm run lint
+        run: flake8 src tests
 
   test:
     runs-on: ubuntu-latest
@@ -32,29 +33,32 @@ jobs:
       - name: Checkout código
         uses: actions/checkout@v4
 
-      - name: Configurar Node.js
-        uses: actions/setup-node@v4
+      - name: Configurar Python
+        uses: actions/setup-python@v5
         with:
-          node-version: 20
-          cache: "npm"
+          python-version: '3.11'
+          cache: 'pip'
 
       - name: Instalar dependencias
-        run: npm ci
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
 
-      - name: Ejecutar Tests con cobertura
-        run: npm run test -- --coverage --json --outputFile=report.json
+      - name: Ejecutar tests con cobertura
+        run: pytest --cov=src --cov-report=xml --cov-report=html --junitxml=tests-report.xml
 
-      - name: Subir reportes de cobertura
+      - name: Subir reporte de cobertura
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: coverage/
+          path: htmlcov/
 
-      - name: Subir reportes de tests
+      - name: Subir reporte de tests
         uses: actions/upload-artifact@v4
         with:
           name: test-report
-          path: report.json
+          path: tests-report.xml
 
   build:
     runs-on: ubuntu-latest
@@ -63,19 +67,15 @@ jobs:
       - name: Checkout código
         uses: actions/checkout@v4
 
-      - name: Configurar Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "npm"
+      - name: Construir imagen Docker
+        run: docker build -t meeting-room-booking .
 
-      - name: Instalar dependencias
-        run: npm ci
+      - name: Exportar carpeta dist
+        run: |
+          mkdir -p dist
+          echo "Build completo: $(date)" > dist/build-info.txt
 
-      - name: Ejecutar Build
-        run: npm run build
-
-      - name: Subir carpeta dist como artifact
+      - name: Subir carpeta dist
         uses: actions/upload-artifact@v4
         with:
           name: dist
