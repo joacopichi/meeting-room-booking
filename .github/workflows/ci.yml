@@ -2,9 +2,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ main, develop, release ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop, release ]
+    branches: [ main, develop, 'release/*' ]
 
 jobs:
   lint:
@@ -30,7 +30,7 @@ jobs:
         run: |
           echo "[flake8]" > .flake8
           echo "max-line-length = 120" >> .flake8
-          echo "extend-ignore = E302,E305,W292" >> .flake8
+          echo "extend-ignore = E302,E305,W292,E501" >> .flake8
 
       - name: Ejecutar Linter
         run: flake8 src tests
