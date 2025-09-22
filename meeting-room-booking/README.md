@@ -22,12 +22,16 @@ From the directory that contains the `src` folder, run:
 
 ```sh
 python -m src.main
+
+python -m src.app
 ```
 
 ### 3. Run unit tests
 
 ```sh
 python -m unittest discover tests
+
+pytest tests/test_health.py
 ```
 
 ## Run with Docker
