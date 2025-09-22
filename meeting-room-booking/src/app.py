@@ -19,7 +19,6 @@ booking_service = BookingService(BookingRepository(), DefaultValidation())
 def health():
     argentina_tz = pytz.timezone('America/Argentina/Buenos_Aires')
     local_time = datetime.now(argentina_tz)
-    
     return jsonify({
         "status": "ok",
         "timestamp": local_time.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -81,7 +80,6 @@ def create_booking():
             return jsonify({"error": "Room not found"}), 404
 
         start_date = datetime.strptime(start_str, "%Y-%m-%d %H:%M")
-
         booking = booking_service.create_booking(user, room, start_date, duration)
         return jsonify(booking.__dict__), 201
 
