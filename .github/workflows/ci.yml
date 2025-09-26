@@ -95,13 +95,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Construir imagen Docker
-        run: docker build \
-          --build-arg DB_USER=${{ secrets.DB_USER }} \
-          --build-arg DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-          --build-arg APP_NAME=${{ vars.APP_NAME }} \
-          --build-arg DB_HOST=${{ vars.DB_HOST }} \
-          --build-arg DEFAULT_REGION=${{ vars.DEFAULT_REGION }} \
-          -t meeting-room-booking .
+        run: |
+          docker build \
+            --build-arg DB_USER=${{ secrets.DB_USER }} \
+            --build-arg DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            --build-arg APP_NAME=${{ vars.APP_NAME }} \
+            --build-arg DB_HOST=${{ vars.DB_HOST }} \
+            --build-arg DEFAULT_REGION=${{ vars.DEFAULT_REGION }} \
+            -t meeting-room-booking \
+            ./
 
       - name: Exportar carpeta dist
         run: |
