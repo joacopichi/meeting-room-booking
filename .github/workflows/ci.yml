@@ -41,6 +41,12 @@ jobs:
     defaults:
       run:
         working-directory: meeting-room-booking
+    env:
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      APP_NAME: ${{ vars.APP_NAME }}
+      DB_HOST: ${{ vars.DB_HOST }}
+      DEFAULT_REGION: ${{ vars.DEFAULT_REGION }}
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
@@ -78,12 +84,24 @@ jobs:
     defaults:
       run:
         working-directory: meeting-room-booking
+    env:
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      APP_NAME: ${{ vars.APP_NAME }}
+      DB_HOST: ${{ vars.DB_HOST }}
+      DEFAULT_REGION: ${{ vars.DEFAULT_REGION }}
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
 
       - name: Construir imagen Docker
-        run: docker build -t meeting-room-booking .
+        run: docker build \
+          --build-arg DB_USER=${{ secrets.DB_USER }} \
+          --build-arg DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+          --build-arg APP_NAME=${{ vars.APP_NAME }} \
+          --build-arg DB_HOST=${{ vars.DB_HOST }} \
+          --build-arg DEFAULT_REGION=${{ vars.DEFAULT_REGION }} \
+          -t meeting-room-booking .
 
       - name: Exportar carpeta dist
         run: |
