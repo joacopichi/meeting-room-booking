@@ -1,4 +1,5 @@
 import os
+import json
 import redis
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
@@ -16,11 +17,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
-user_service = UserService(UserRepository())
-room_service = RoomService(RoomRepository())
-booking_service = BookingService(BookingRepository(), DefaultValidation())
-
-REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_HOST = os.getenv("REDIS_HOST", "redis")
 REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 REDIS_DB = int(os.getenv("REDIS_DB", 0))
 
@@ -37,38 +34,46 @@ except Exception as e:
     redis_client = None
     print(f"[WARN] No se pudo conectar a Redis: {e}")
 
+user_service = UserService(UserRepository())
+room_service = RoomService(RoomRepository())
+booking_service = BookingService(BookingRepository(), DefaultValidation())
+
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({"message": "Welcome to the Meeting Room Booking API"}), 200
 
 @app.route("/health", methods=["GET"])
 def health():
     argentina_tz = pytz.timezone("America/Argentina/Buenos_Aires")
     local_time = datetime.now(argentina_tz)
     client_ip = request.remote_addr
-
     payload = {
         "status": "ok",
         "timestamp": local_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "client_ip": client_ip,
     }
-
     if redis_client:
-        redis_client.lpush("health_requests", str(payload))
-
+        redis_client.lpush("health_requests", json.dumps(payload))
     return jsonify(payload), 200
-
 
 @app.route("/ping", methods=["GET"])
 def ping():
+    now = datetime.utcnow().isoformat()
+    payload = {"status": "pong", "timestamp": now}
     if redis_client:
-        now = datetime.utcnow().isoformat()
-        redis_client.lpush("ping_requests", f"ping at {now}")
-        return jsonify({"status": "pong", "timestamp": now})
-    else:
-        return jsonify({"status": "pong", "warning": "Redis no disponible"})
+        redis_client.lpush("ping_requests", json.dumps(payload))
+    return jsonify(payload)
 
-
-@app.route("/", methods=["GET"])
-def home():
-    return jsonify({"message": "Welcome to the Meeting Room Booking API"}), 200
+@app.route("/get-responses", methods=["GET"])
+def get_responses():
+    if not redis_client:
+        return jsonify({"error": "Redis no disponible"}), 500
+    try:
+        health_data = redis_client.lrange("health_requests", 0, -1)
+        health_data = [json.loads(r) for r in health_data]
+        return jsonify(health_data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/users", methods=["POST"])
 def create_user():
@@ -90,12 +95,10 @@ def create_room():
     data = request.json or {}
     name = data.get("name")
     capacity = data.get("capacity")
-
     try:
         capacity = int(capacity)
     except (TypeError, ValueError):
         return jsonify({"error": "Name and integer capacity required"}), 400
-
     room = room_service.create_room(name, capacity)
     return jsonify(room.__dict__), 201
 
@@ -124,7 +127,6 @@ def create_booking():
         start_date = datetime.strptime(start_str, "%Y-%m-%d %H:%M")
         booking = booking_service.create_booking(user, room, start_date, duration)
         return jsonify(booking.__dict__), 201
-
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
