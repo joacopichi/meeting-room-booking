@@ -1,4 +1,7 @@
+import os
+import redis
 from flask import Flask, request, jsonify
+from dotenv import load_dotenv
 from src.services.UserService import UserService
 from src.services.RoomService import RoomService
 from src.services.BookingService import BookingService
@@ -9,20 +12,59 @@ from src.patterns.DefaultValidation import DefaultValidation
 from datetime import datetime
 import pytz
 
+load_dotenv()
+
 app = Flask(__name__)
 
 user_service = UserService(UserRepository())
 room_service = RoomService(RoomRepository())
 booking_service = BookingService(BookingRepository(), DefaultValidation())
 
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+REDIS_DB = int(os.getenv("REDIS_DB", 0))
+
+try:
+    redis_client = redis.Redis(
+        host=REDIS_HOST,
+        port=REDIS_PORT,
+        db=REDIS_DB,
+        decode_responses=True
+    )
+    redis_client.ping()
+    print(f"[INFO] Conectado a Redis en {REDIS_HOST}:{REDIS_PORT}")
+except Exception as e:
+    redis_client = None
+    print(f"[WARN] No se pudo conectar a Redis: {e}")
+
+
 @app.route("/health", methods=["GET"])
 def health():
-    argentina_tz = pytz.timezone('America/Argentina/Buenos_Aires')
+    argentina_tz = pytz.timezone("America/Argentina/Buenos_Aires")
     local_time = datetime.now(argentina_tz)
-    return jsonify({
+    client_ip = request.remote_addr
+
+    payload = {
         "status": "ok",
-        "timestamp": local_time.strftime("%Y-%m-%dT%H:%M:%SZ")
-    }), 200
+        "timestamp": local_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "client_ip": client_ip,
+    }
+
+    if redis_client:
+        redis_client.lpush("health_requests", str(payload))
+
+    return jsonify(payload), 200
+
+
+@app.route("/ping", methods=["GET"])
+def ping():
+    if redis_client:
+        now = datetime.utcnow().isoformat()
+        redis_client.lpush("ping_requests", f"ping at {now}")
+        return jsonify({"status": "pong", "timestamp": now})
+    else:
+        return jsonify({"status": "pong", "warning": "Redis no disponible"})
+
 
 @app.route("/", methods=["GET"])
 def home():
@@ -92,4 +134,4 @@ def list_bookings():
     return jsonify([b.__dict__ for b in bookings]), 200
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)

@@ -6,7 +6,8 @@ Flask-Script==2.0.6
 Flask-SQLAlchemy==3.0.5
 Flask-WTF==1.2.1
 pytz
-
 pytest==7.4.2
 pytest-cov==4.1.0
 flake8==6.1.0
+redis>=4.6.0
+python-dotenv
