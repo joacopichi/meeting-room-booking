@@ -71,7 +71,28 @@ def get_responses():
     try:
         health_data = redis_client.lrange("health_requests", 0, -1)
         health_data = [json.loads(r) for r in health_data]
-        return jsonify(health_data)
+
+        html = "<h2>Health Responses</h2><ul>"
+        for r in health_data:
+            html += f"<li>{r}</li>"
+        html += "</ul>"
+        html += """
+            <form action="/clear-responses" method="post">
+                <button type="submit">Clear All Responses</button>
+            </form>
+        """
+        return html
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/clear-responses", methods=["POST", "DELETE"])
+def clear_responses():
+    if not redis_client:
+        return jsonify({"error": "Redis no disponible"}), 500
+    try:
+        redis_client.delete("health_requests")
+        redis_client.delete("ping_requests")
+        return jsonify({"message": "All responses have been cleared successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
