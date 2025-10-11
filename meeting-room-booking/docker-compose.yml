@@ -1,23 +1,32 @@
-version: '3.9'
+version: "3.9"
 
 services:
-  redis:
-    image: redis:8.2
-    container_name: meeting-redis
-    ports:
-      - "6379:6379"
-    command: ["redis-server", "--appendonly", "yes"]
-
   web:
     build: .
     container_name: meeting-web
     ports:
       - "5000:5000"
     environment:
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_DB: 0
+      - FLASK_APP=src/app.py
+      - FLASK_ENV=development
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - SECRET_KEY=mi_clave_secreta
     depends_on:
       - redis
     volumes:
       - .:/app
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    container_name: meeting-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: always
+
+volumes:
+  redis_data:

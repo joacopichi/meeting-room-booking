@@ -9,13 +9,19 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiamos el resto de la app
 COPY . .
 
-# Exponemos el puerto de Flask
-EXPOSE 5000
+# Asegura que Flask pueda importar módulos desde src/
+ENV PYTHONPATH=/app
 
 # Variables de entorno para Flask
 ENV FLASK_APP=src/app.py
 ENV FLASK_RUN_HOST=0.0.0.0
 ENV FLASK_RUN_PORT=5000
+ENV REDIS_HOST=redis
+ENV REDIS_PORT=6379
+ENV REDIS_DB=0
+ENV SECRET_KEY=mi_clave_secreta
+
+EXPOSE 5000
 
 # Comando para iniciar Flask
 CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]

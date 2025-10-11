@@ -1,8 +1,11 @@
 import os
 import json
 import redis
+import jwt
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
+import pytz
 from src.services.UserService import UserService
 from src.services.RoomService import RoomService
 from src.services.BookingService import BookingService
@@ -10,8 +13,7 @@ from src.repositories.UserRepository import UserRepository
 from src.repositories.RoomRepository import RoomRepository
 from src.repositories.BookingRepository import BookingRepository
 from src.patterns.DefaultValidation import DefaultValidation
-from datetime import datetime
-import pytz
+from functools import wraps
 
 load_dotenv()
 
@@ -20,6 +22,7 @@ app = Flask(__name__)
 REDIS_HOST = os.getenv("REDIS_HOST", "redis")
 REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 REDIS_DB = int(os.getenv("REDIS_DB", 0))
+SECRET_KEY = os.getenv("SECRET_KEY", "mi_clave_secreta")
 
 try:
     redis_client = redis.Redis(
@@ -37,6 +40,43 @@ except Exception as e:
 user_service = UserService(UserRepository())
 room_service = RoomService(RoomRepository())
 booking_service = BookingService(BookingRepository(), DefaultValidation())
+
+def validate_token(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        auth_header = request.headers.get("Authorization")
+
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return jsonify({"message": "Invalid or missing token"}), 401
+
+        token = auth_header.split(" ")[1]
+
+        if not redis_client or not redis_client.exists(f"token:{token}"):
+            return jsonify({"message": "Invalid or missing token"}), 401
+
+        try:
+            jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        except jwt.ExpiredSignatureError:
+            return jsonify({"message": "Token expired"}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({"message": "Invalid token"}), 401
+
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+@app.route("/generate-token", methods=["POST"])
+def generate_token():
+    data = request.json or {}
+    user = data.get("user", "default_user")
+
+    expiration = datetime.utcnow() + timedelta(hours=1)
+    token = jwt.encode({"user": user, "exp": expiration}, SECRET_KEY, algorithm="HS256")
+
+    if redis_client:
+        redis_client.setex(f"token:{token}", timedelta(hours=1), "valid")
+
+    return jsonify({"token": token}), 200
 
 @app.route("/", methods=["GET"])
 def home():
@@ -65,6 +105,7 @@ def ping():
     return jsonify(payload)
 
 @app.route("/get-responses", methods=["GET"])
+@validate_token
 def get_responses():
     if not redis_client:
         return jsonify({"error": "Redis no disponible"}), 500
@@ -86,6 +127,7 @@ def get_responses():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/clear-responses", methods=["POST", "DELETE"])
+@validate_token
 def clear_responses():
     if not redis_client:
         return jsonify({"error": "Redis no disponible"}), 500
