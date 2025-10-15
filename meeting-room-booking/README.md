@@ -73,6 +73,9 @@ La API estará disponible en `http://localhost:5000`.
    docker build -t meeting-room-booking .
    ```
 
+   (o si ya se tiene ejecutado el docker-compose)
+   docker-compose up --build
+
 2. **Ejecutar el contenedor**
 
    ```sh
