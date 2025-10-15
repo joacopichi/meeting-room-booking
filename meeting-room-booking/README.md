@@ -141,92 +141,94 @@ meeting-room-booking/
 
 ## Endpoints de la API
 
-### 1. `/users`
-- **GET**: Listar usuarios.
-- **POST**: Crear usuario.
-- **Headers**: `Authorization: Bearer <token>`
-- **Ejemplo respuesta**:
-    ```json
-    [
-      {"id": 1, "username": "juan"}
-    ]
-    ```
+### 1. `/generate-token` – Generar JWT
 
-### 2. `/rooms`
-- **GET**: Listar salas.
-- **POST**: Crear sala.
-- **Headers**: `Authorization: Bearer <token>`
-- **Ejemplo respuesta**:
-    ```json
-    [
-      {"id": 1, "name": "Sala A"}
-    ]
-    ```
+* **Método:** POST
+* **Body (JSON):**
 
-### 3. `/bookings`
-- **GET**: Listar reservas.
-- **POST**: Crear reserva (valida conflictos).
-- **DELETE**: Eliminar reserva.
-- **Headers**: `Authorization: Bearer <token>`
-- **Ejemplo respuesta**:
-    ```json
-    [
-      {
-        "id": 1,
-        "user_id": 1,
-        "room_id": 1,
-        "start": "2025-10-15T10:00:00",
-        "end": "2025-10-15T11:00:00"
-      }
-    ]
-    ```
+  ```json
+  {
+    "user": "joaco"
+  }
+  ```
+* **Headers:** `Content-Type: application/json`
+* **Respuesta:**
 
-### 4. `/generate-token`
-- **POST**: Genera un JWT para autenticación.
-- **Body**:
-    ```json
-    {
-      "username": "juan"
-    }
-    ```
-- **Ejemplo respuesta**:
-    ```json
-    {
-      "token": "<jwt_token>"
-    }
-    ```
+  ```json
+  {
+    "token": "<jwt_token>"
+  }
+  ```
 
-### 5. `/get-responses`
-- **GET**: Obtiene logs/respuestas almacenadas en Redis.
-- **Headers**: `Authorization: Bearer <token>`
-- **Ejemplo respuesta**:
-    ```json
-    [
-      {"endpoint": "/users", "response": "..."}
-    ]
-    ```
+### 2. `/users`
 
-### 6. `/clear-responses`
-- **POST**: Limpia los logs/respuestas en Redis.
-- **Headers**: `Authorization: Bearer <token>`
-- **Ejemplo respuesta**:
-    ```json
-    {"message": "Respuestas limpiadas"}
-    ```
+* **POST**: Crear usuario
 
-### 7. `/health`
-- **GET**: Verifica el estado de la aplicación.
-- **Ejemplo respuesta**:
-    ```json
-    {"status": "ok"}
-    ```
+  ```json
+  {
+    "name": "Joaco",
+    "email": "joaco@example.com"
+  }
+  ```
+* **GET**: Listar usuarios
+* **Headers**: `Authorization: Bearer <jwt_token>` (si aplica)
 
-### 8. `/ping`
-- **GET**: Prueba de conectividad.
-- **Ejemplo respuesta**:
-    ```json
-    {"message": "pong"}
-    ```
+### 3. `/rooms`
+
+* **POST**: Crear sala
+
+  ```json
+  {
+    "name": "Sala A",
+    "capacity": 10
+  }
+  ```
+* **GET**: Listar salas
+* **Headers**: `Authorization: Bearer <jwt_token>` (si aplica)
+
+### 4. `/bookings`
+
+* **POST**: Crear reserva
+
+  ```json
+  {
+    "user_id": 1,
+    "room_id": 1,
+    "start": "2025-10-15 10:00",
+    "duration": 60
+  }
+  ```
+* **GET**: Listar reservas
+* **DELETE**: Eliminar reserva (opcional)
+* **Headers**: `Authorization: Bearer <jwt_token>`
+
+### 5. `/get-responses` – Obtener logs/respuestas de Redis
+
+* **GET**
+* **Headers:** `Authorization: Bearer <jwt_token>`
+
+### 6. `/clear-responses` – Limpiar logs/respuestas de Redis
+
+* **POST o DELETE**
+* **Headers:** `Authorization: Bearer <jwt_token>`
+
+### 7. `/health` – Estado de la aplicación
+
+* **GET**
+* **Respuesta:**
+
+  ```json
+  {"status": "ok"}
+  ```
+
+### 8. `/ping` – Prueba de conectividad
+
+* **GET**
+* **Respuesta:**
+
+  ```json
+  {"status": "pong"}
+  ```
 
 ---
 
