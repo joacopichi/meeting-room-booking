@@ -2,6 +2,26 @@
 
 Aplicación **Flask** en Python para la gestión de usuarios, salas de reuniones y reservas, implementando los patrones de diseño **Repository** y **Strategy**, autenticación con **JWT** y almacenamiento temporal en **Redis**. Incluye validación de conflictos de reservas, endpoints para logs y limpieza, y protección de rutas.
 
+---
+
+## Tabla de Contenidos
+
+1. [Descripción](#descripción)
+2. [Requisitos](#requisitos)
+3. [Instalación](#instalación)
+4. [Configuración de Variables de Entorno](#configuración-de-variables-de-entorno)
+5. [Ejecución Local](#ejecución-local)
+6. [Ejecución con Docker](#ejecución-con-docker)
+7. [Estructura del Proyecto](#estructura-del-proyecto)
+8. [Funcionalidades](#funcionalidades)
+9. [Endpoints de la API](#endpoints-de-la-api)
+10. [Pruebas con Postman](#pruebas-con-postman)
+11. [Testing](#testing)
+12. [CI/CD](#cicd)
+13. [Notas Adicionales](#notas-adicionales)
+
+---
+
 ## Descripción
 
 API RESTful desarrollada con **Flask** para gestionar usuarios, salas y reservas de reuniones. Utiliza **JWT** para autenticación, **Redis** para almacenamiento temporal de logs y respuestas, y patrones **Repository** y **Strategy** para una arquitectura escalable y mantenible.
@@ -72,9 +92,6 @@ La API estará disponible en `http://localhost:5000`.
    ```sh
    docker build -t meeting-room-booking .
    ```
-
-   (o si ya se tiene ejecutado el docker-compose)
-   docker-compose up --build
 
 2. **Ejecutar el contenedor**
 
@@ -186,3 +203,76 @@ meeting-room-booking/
     ```json
     [
       {"endpoint": "/users", "response": "..."}
+    ]
+    ```
+
+### 6. `/clear-responses`
+- **POST**: Limpia los logs/respuestas en Redis.
+- **Headers**: `Authorization: Bearer <token>`
+- **Ejemplo respuesta**:
+    ```json
+    {"message": "Respuestas limpiadas"}
+    ```
+
+### 7. `/health`
+- **GET**: Verifica el estado de la aplicación.
+- **Ejemplo respuesta**:
+    ```json
+    {"status": "ok"}
+    ```
+
+### 8. `/ping`
+- **GET**: Prueba de conectividad.
+- **Ejemplo respuesta**:
+    ```json
+    {"message": "pong"}
+    ```
+
+---
+
+## Pruebas con Postman
+
+1. **Generar token JWT**
+    - Enviar `POST` a `/generate-token` con el usuario.
+    - Copiar el token de la respuesta.
+
+2. **Usar el token**
+    - En cada request, agregar el header:
+      ```
+      Authorization: Bearer <jwt_token>
+      ```
+
+3. **Probar endpoints**
+    - Crear usuarios/salas/reservas con `POST`.
+    - Listar con `GET`.
+    - Eliminar reservas con `DELETE`.
+    - Limpiar logs con `POST` a `/clear-responses`.
+
+---
+
+## Testing
+
+Ejecuta las pruebas unitarias con:
+
+```sh
+python -m unittest discover tests
+```
+o
+```sh
+pytest tests/
+```
+
+---
+
+## CI/CD
+
+El proyecto incluye flujo de integración continua con GitHub Actions (`ci.yml`), ejecutando tests automáticamente en cada push/pull request.
+
+---
+
+## Notas Adicionales
+
+- **Buenas prácticas**: Mantén tus claves secretas fuera del código fuente.
+- **Advertencia**: No uses variables de entorno de desarrollo en producción.
+- **Redis**: Asegúrate de que Redis esté corriendo antes de iniciar la app.
+- **Extensibilidad**: El uso de Repository y Strategy permite agregar nuevas reglas y fuentes de datos fácilmente.
